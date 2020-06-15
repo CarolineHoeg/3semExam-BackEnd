@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import facades.MovieFacade;
 import java.io.IOException;
 import java.sql.SQLException;
+import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -36,8 +37,17 @@ public class MovieResource {
     @GET
     @Path("{title}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getById(@PathParam("title") String title) throws IOException {
+    public Response getByTitle(@PathParam("title") String title) throws IOException {
         String movie = GSON.toJson(FACADE.getMovieByTitle(title));
+        return Response.ok(movie).build();
+    }
+    
+    @GET
+    @Path("/imdb/{title}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"user"})
+    public Response getImdbByTitle(@PathParam("title") String title) throws IOException {
+        String movie = GSON.toJson(FACADE.getMovieWithImdbByTitle(title));
         return Response.ok(movie).build();
     }
 

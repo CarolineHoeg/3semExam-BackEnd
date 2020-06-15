@@ -1,11 +1,15 @@
 package rest;
 
 import dto.MovieDTO;
+import dto.RatedMovieDTO;
+import entities.Role;
+import entities.User;
 import io.restassured.RestAssured;
 import static io.restassured.RestAssured.given;
 import io.restassured.parsing.Parser;
 import java.io.IOException;
 import java.net.URI;
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.core.UriBuilder;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -15,6 +19,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.EMF_Creator;
 import utils.EMF_Creator.DbSelector;
@@ -29,7 +34,15 @@ public class MovieRessourceTest {
     static final URI BASE_URI = UriBuilder.fromUri(SERVER_URL).port(SERVER_PORT).build();
     private static HttpServer httpServer;
     private static EntityManagerFactory emf;
-    private MovieDTO movie1;
+    //This is to hold on to the token after login, similar to that a client must store the token somewhere
+    private static String securityToken;
+    private MovieDTO movie1 = new MovieDTO("Die Hard", 1988, "John McClane, officer of the NYPD, "
+                + "tries to save wife Holly Gennaro and several others, taken hostage by German "
+                + "terrorist Hans Gruber during a Christmas party at the Nakatomi Plaza in Los Angeles.",
+                "John McTiernan", "Action,Thriller", "Bruce Willis,Bonnie Bedelia,"
+                + "Reginald VelJohnson,Paul Gleason");
+    private Role userRole = new Role("user");
+    private User user1 = new User("user", "test");
 
     static HttpServer startServer() {
         ResourceConfig rc = ResourceConfig.forApplication(new ApplicationConfig());
@@ -55,16 +68,39 @@ public class MovieRessourceTest {
         httpServer.shutdownNow();
     }
 
-//    @BeforeEach
-//    public void setUp() {
-//        EntityManager em = emf.createEntityManager();
-//        try {
-//            em.getTransaction().begin();
-//            em.getTransaction().commit();
-//        } finally {
-//            em.close();
-//        }
-//    }
+    @BeforeEach
+    public void setUp() {
+        movie1.setPoster("https://m.media-amazon.com/images/M/MV5BZjRlNDUxZjAtOGQ4OC00OTNlLTgxNmQtYTBmMDgwZmNmNjkxXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_SY1000_SX677_AL_.jpg");
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            em.createNamedQuery("Role.deleteAllRows").executeUpdate();
+            em.createNamedQuery("User.deleteAllRows").executeUpdate();
+            em.persist(userRole);
+            em.persist(user1);
+            user1.addRole(userRole);
+            em.getTransaction().commit();
+        } finally {
+            em.close();
+        }
+    }
+
+    //Utility method to login and set the returned securityToken
+    private static void login(String username, String password) {
+        String json = String.format("{username: \"%s\", password: \"%s\"}", username, password);
+        securityToken = given()
+                .contentType("application/json")
+                .body(json)
+                //.when().post("/api/login")
+                .when().post("/login")
+                .then()
+                .extract().path("token");
+        System.out.println("TOKEN ---> " + securityToken);
+    }
+
+    private void logOut() {
+        securityToken = null;
+    }
 
     @Test
     public void testConnection() {
@@ -78,12 +114,6 @@ public class MovieRessourceTest {
     
     @Test
     public void testGetMovieByTitle() throws IOException {
-        movie1 = new MovieDTO("Die Hard", 1988, "John McClane, officer of the NYPD, "
-                + "tries to save wife Holly Gennaro and several others, taken hostage by German "
-                + "terrorist Hans Gruber during a Christmas party at the Nakatomi Plaza in Los Angeles.",
-                "John McTiernan", "Action,Thriller", "Bruce Willis,Bonnie Bedelia,"
-                + "Reginald VelJohnson,Paul Gleason");
-        movie1.setPoster("https://m.media-amazon.com/images/M/MV5BZjRlNDUxZjAtOGQ4OC00OTNlLTgxNmQtYTBmMDgwZmNmNjkxXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_SY1000_SX677_AL_.jpg");
         given().when()
                 .get("/movie-info/{title}", movie1.getTitle()).
                 then()
@@ -96,5 +126,19 @@ public class MovieRessourceTest {
                 .body("genres", is(movie1.getGenres()))
                 .body("cast", is(movie1.getCast()))
                 .body("poster", is(movie1.getPoster()));
+    }
+    
+    @Test
+    public void testGetMovieWithImdbByTitle() throws IOException {
+        RatedMovieDTO expMovie = new RatedMovieDTO(movie1);
+        expMovie.setImdbRating(8.3);
+        expMovie.setImdbVotes(535036);
+        login("user", "test");
+        given().header("x-access-token", securityToken).
+                when()
+                .get("/movie-info/imdb/{title}", movie1.getTitle()).
+                then()
+                .assertThat()
+                .statusCode(HttpStatus.OK_200.getStatusCode());
     }
 }

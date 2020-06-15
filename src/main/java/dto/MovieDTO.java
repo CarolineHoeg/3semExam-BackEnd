@@ -59,14 +59,14 @@ public class MovieDTO {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 83 * hash + Objects.hashCode(this.title);
-        hash = 83 * hash + this.year;
-        hash = 83 * hash + Objects.hashCode(this.plot);
-        hash = 83 * hash + Objects.hashCode(this.directors);
-        hash = 83 * hash + Objects.hashCode(this.genres);
-        hash = 83 * hash + Objects.hashCode(this.cast);
-        hash = 83 * hash + Objects.hashCode(this.poster);
+        int hash = 5;
+        hash = 31 * hash + Objects.hashCode(this.title);
+        hash = 31 * hash + this.year;
+        hash = 31 * hash + Objects.hashCode(this.plot);
+        hash = 31 * hash + Objects.hashCode(this.directors);
+        hash = 31 * hash + Objects.hashCode(this.genres);
+        hash = 31 * hash + Objects.hashCode(this.cast);
+        hash = 31 * hash + Objects.hashCode(this.poster);
         return hash;
     }
 
@@ -110,5 +110,5 @@ public class MovieDTO {
     public String toString() {
         return "MovieDTO{" + "title=" + title + ", year=" + year + ", plot=" + plot + ", directors=" + directors + ", genres=" + genres + ", cast=" + cast + ", poster=" + poster + '}';
     }
-    
+
 }
