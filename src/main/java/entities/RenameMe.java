@@ -19,6 +19,7 @@ public class RenameMe implements Serializable {
     private Long id;
     
     public RenameMe() {
+        
     }
         
     public Long getId() {
