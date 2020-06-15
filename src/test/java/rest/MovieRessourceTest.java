@@ -1,21 +1,20 @@
 package rest;
 
-import entities.RenameMe;
+import dto.MovieDTO;
 import io.restassured.RestAssured;
 import static io.restassured.RestAssured.given;
 import io.restassured.parsing.Parser;
+import java.io.IOException;
 import java.net.URI;
-import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.ws.rs.core.UriBuilder;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.util.HttpStatus;
 import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.server.ResourceConfig;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.EMF_Creator;
 import utils.EMF_Creator.DbSelector;
@@ -23,15 +22,14 @@ import utils.EMF_Creator.Strategy;
 
 //Uncomment the line below, to temporarily disable this test
 //@Disabled
-public class RenameMeRessourceTest {
+public class MovieRessourceTest {
 
     private static final int SERVER_PORT = 7777;
     private static final String SERVER_URL = "http://localhost/api";
-    private static RenameMe r1, r2;
-
     static final URI BASE_URI = UriBuilder.fromUri(SERVER_URL).port(SERVER_PORT).build();
     private static HttpServer httpServer;
     private static EntityManagerFactory emf;
+    private MovieDTO movie1;
 
     static HttpServer startServer() {
         ResourceConfig rc = ResourceConfig.forApplication(new ApplicationConfig());
@@ -53,46 +51,50 @@ public class RenameMeRessourceTest {
 
     @AfterAll
     public static void closeTestServer() {
-        //System.in.read();
-        //Don't forget this, if you called its counterpart in @BeforeAll
         EMF_Creator.endREST_TestWithDB();
         httpServer.shutdownNow();
     }
 
-    // Setup the DataBase (used by the test-server and this test) in a known state BEFORE EACH TEST
-    //TODO -- Make sure to change the EntityClass used below to use YOUR OWN (renamed) Entity class
-    @BeforeEach
-    public void setUp() {
-        EntityManager em = emf.createEntityManager();
-        r1 = new RenameMe("Some txt", "More text");
-        r2 = new RenameMe("aaa", "bbb");
-        try {
-            em.getTransaction().begin();
-            em.createNamedQuery("RenameMe.deleteAllRows").executeUpdate();
-            em.persist(r1);
-            em.persist(r2);
-
-            em.getTransaction().commit();
-        } finally {
-            em.close();
-        }
-    }
+//    @BeforeEach
+//    public void setUp() {
+//        EntityManager em = emf.createEntityManager();
+//        try {
+//            em.getTransaction().begin();
+//            em.getTransaction().commit();
+//        } finally {
+//            em.close();
+//        }
+//    }
 
     @Test
-    public void testServerIsUp() {
-        System.out.println("Testing is server UP");
-        given().when().get("/xxx").then().statusCode(200);
-    }
-
-    //GET
-    @Test
-    public void testCount() {
-        given()
-                .contentType("application/json")
-                .get("/xxx/count").then()
+    public void testConnection() {
+        given().when()
+                .get("/movie-info").
+                then()
                 .assertThat()
                 .statusCode(HttpStatus.OK_200.getStatusCode())
-                .body("count", equalTo(2));
+                .body("msg", is("Hello World"));
     }
-
+    
+    @Test
+    public void testGetMovieByTitle() throws IOException {
+        movie1 = new MovieDTO("Die Hard", 1988, "John McClane, officer of the NYPD, "
+                + "tries to save wife Holly Gennaro and several others, taken hostage by German "
+                + "terrorist Hans Gruber during a Christmas party at the Nakatomi Plaza in Los Angeles.",
+                "John McTiernan", "Action,Thriller", "Bruce Willis,Bonnie Bedelia,"
+                + "Reginald VelJohnson,Paul Gleason");
+        movie1.setPoster("https://m.media-amazon.com/images/M/MV5BZjRlNDUxZjAtOGQ4OC00OTNlLTgxNmQtYTBmMDgwZmNmNjkxXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_SY1000_SX677_AL_.jpg");
+        given().when()
+                .get("/movie-info/{title}", movie1.getTitle()).
+                then()
+                .assertThat()
+                .statusCode(HttpStatus.OK_200.getStatusCode())
+                .body("title", is(movie1.getTitle()))
+                .body("year", is(movie1.getYear()))
+                .body("plot", is(movie1.getPlot()))
+                .body("directors", is(movie1.getDirectors()))
+                .body("genres", is(movie1.getGenres()))
+                .body("cast", is(movie1.getCast()))
+                .body("poster", is(movie1.getPoster()));
+    }
 }
