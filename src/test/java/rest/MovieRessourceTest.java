@@ -1,7 +1,7 @@
 package rest;
 
 import dto.MovieDTO;
-import dto.RatedMovieDTO;
+import dto.ImdbRatedMovieDTO;
 import entities.Role;
 import entities.User;
 import io.restassured.RestAssured;
@@ -130,7 +130,7 @@ public class MovieRessourceTest {
     
     @Test
     public void testGetMovieWithImdbByTitle() throws IOException {
-        RatedMovieDTO expMovie = new RatedMovieDTO(movie1);
+        ImdbRatedMovieDTO expMovie = new ImdbRatedMovieDTO(movie1);
         expMovie.setImdbRating(8.3);
         expMovie.setImdbVotes(535036);
         login("user", "test");

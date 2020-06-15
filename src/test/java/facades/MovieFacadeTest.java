@@ -1,7 +1,7 @@
 package facades;
 
 import dto.MovieDTO;
-import dto.RatedMovieDTO;
+import dto.ImdbRatedMovieDTO;
 import java.io.IOException;
 import java.sql.SQLException;
 import javax.persistence.EntityManager;
@@ -69,10 +69,10 @@ public class MovieFacadeTest {
                 "John McTiernan", "Action,Thriller", "Bruce Willis,Bonnie Bedelia,"
                 + "Reginald VelJohnson,Paul Gleason");
         mdto.setPoster("https://m.media-amazon.com/images/M/MV5BZjRlNDUxZjAtOGQ4OC00OTNlLTgxNmQtYTBmMDgwZmNmNjkxXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_SY1000_SX677_AL_.jpg");
-        RatedMovieDTO expMovie = new RatedMovieDTO(mdto);
+        ImdbRatedMovieDTO expMovie = new ImdbRatedMovieDTO(mdto);
         expMovie.setImdbRating(8.3);
         expMovie.setImdbVotes(535036);
-        RatedMovieDTO movie = facade.getMovieWithImdbByTitle(title);
+        ImdbRatedMovieDTO movie = facade.getMovieWithImdbByTitle(title);
         assertEquals(expMovie, movie);
     }
 

@@ -50,5 +50,14 @@ public class MovieResource {
         String movie = GSON.toJson(FACADE.getMovieWithImdbByTitle(title));
         return Response.ok(movie).build();
     }
+    
+    @GET
+    @Path("/all-ratings/{title}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RolesAllowed({"user"})
+    public Response getAllRatingsByTitle(@PathParam("title") String title) throws IOException {
+        String movie = GSON.toJson(FACADE.getMovieWithAllRatingsByTitle(title));
+        return Response.ok(movie).build();
+    }
 
 }

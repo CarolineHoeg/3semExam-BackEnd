@@ -6,13 +6,13 @@ import java.util.Objects;
  *
  * @author carol
  */
-public class RatedMovieDTO {
+public class ImdbRatedMovieDTO {
     
     private MovieDTO movie;
     private double imdbRating;
     private double imdbVotes;
     
-    public RatedMovieDTO(MovieDTO movie) {
+    public ImdbRatedMovieDTO(MovieDTO movie) {
         this.movie = movie;
     }
     
@@ -52,7 +52,7 @@ public class RatedMovieDTO {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final RatedMovieDTO other = (RatedMovieDTO) obj;
+        final ImdbRatedMovieDTO other = (ImdbRatedMovieDTO) obj;
         if (Double.doubleToLongBits(this.imdbRating) != Double.doubleToLongBits(other.imdbRating)) {
             return false;
         }

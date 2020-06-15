@@ -1,7 +1,8 @@
 package facades;
 
+import dto.FullyRatedMovieDTO;
 import dto.MovieDTO;
-import dto.RatedMovieDTO;
+import dto.ImdbRatedMovieDTO;
 import java.io.IOException;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -41,8 +42,12 @@ public class MovieFacade {
         return fetchFacade.getMovieByTitle(title);
     }
 
-    public RatedMovieDTO getMovieWithImdbByTitle(String title) throws IOException {
+    public ImdbRatedMovieDTO getMovieWithImdbByTitle(String title) throws IOException {
         return fetchFacade.getMovieWithImdbByTitle(title);
+    }
+
+    public FullyRatedMovieDTO getMovieWithAllRatingsByTitle(String title) throws IOException {
+        return fetchFacade.getMovieWithAllRatingsByTitle(title);
     }
 
 }
